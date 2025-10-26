@@ -77,7 +77,7 @@
 <?define UpdatesURL = "$(var.HomePage)download.html" ?>
 <?define SupportURL = "$(var.HomePage)support.html" ?>
 
-<Wix xmlns="http://schemas.microsoft.com/wix/2003/01/wi">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product
       Id="$(var.ProductId)"
       UpgradeCode="$(var.UpgradeCode)"
@@ -187,7 +187,7 @@
 
           <Component Id="Fm" Guid="$(var.CompFm)" DiskId="1" Win64="$(var.Is64)">
             <File Id="_7zFM.exe" Name="7zFM.exe">
-              <Shortcut Id="startmenuFmShortcut" Directory="PMenu" Name="7zipFM" LongName="7-Zip File Manager" />
+              <Shortcut Id="startmenuFmShortcut" Directory="PMenu" Name="7-Zip File Manager" />
             </File>
           </Component>
 
@@ -247,7 +247,7 @@
 
           <Component Id="Help" Guid="$(var.CompHelp)">
             <File Id="_7zip.chm" Name="7-zip.chm" DiskId="1" >
-              <Shortcut Id="startmenuHelpShortcut" Directory="PMenu" Name="7zipHelp" LongName="7-Zip Help" />
+              <Shortcut Id="startmenuHelpShortcut" Directory="PMenu" Name="7-Zip Help" />
             </File>
           </Component>
 
@@ -353,8 +353,8 @@
         </Directory>
       </Directory>
 
-      <Directory Id="ProgramMenuFolder" Name="PMenu" LongName="Programs">
-        <Directory Id="PMenu" Name="7zip" LongName="7-Zip" />
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="PMenu" Name="7-Zip" />
       </Directory>
     </Directory>
 
@@ -392,7 +392,7 @@
       </Feature>
     </Feature>
 
-    <UIRef Id="WixUI" />
+    <UIRef Id="WixUI_FeatureTree" />
 
     <!-- Install Sequences -->
     <InstallExecuteSequence>

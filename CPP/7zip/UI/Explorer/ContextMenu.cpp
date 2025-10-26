@@ -613,9 +613,12 @@ Z7_COMWF_B CZipContextMenu::QueryContextMenu(HMENU hMenu, UINT indexMenu,
 
   UINT currentCommandID = commandIDFirst;
   
-  if ((flags & 0x000F) != CMF_NORMAL
+  const UINT shellInvokeMask = (flags & 0x000F);
+  if (shellInvokeMask != CMF_NORMAL
       && (flags & CMF_VERBSONLY) == 0
-      && (flags & CMF_EXPLORE) == 0)
+      && (flags & CMF_EXPLORE) == 0
+      // allow CMF_DEFAULTONLY right-drag menus to surface extraction verbs
+      && !_dropMode)
     return MAKE_HRESULT_SUCCESS_FAC0(currentCommandID - commandIDFirst);
   // return MAKE_HRESULT_SUCCESS_FAC0(currentCommandID);
   // 19.01 : we changed from (currentCommandID) to (currentCommandID - commandIDFirst)
@@ -632,6 +635,17 @@ Z7_COMWF_B CZipContextMenu::QueryContextMenu(HMENU hMenu, UINT indexMenu,
   CContextMenuInfo ci;
   ci.Load();
   ODS("### 44")
+
+  const bool useMinimalExtractMenu = true;
+  if (useMinimalExtractMenu)
+  {
+    ci.Cascaded.Val = false;
+    ci.Cascaded.Def = false;
+    ci.Flags =
+        NContextMenuFlags::kExtract |
+        NContextMenuFlags::kExtractHere |
+        NContextMenuFlags::kExtractTo;
+  }
 
   _elimDup = ci.ElimDup;
   _writeZone = ci.WriteZone;
@@ -667,11 +681,14 @@ Z7_COMWF_B CZipContextMenu::QueryContextMenu(HMENU hMenu, UINT indexMenu,
   else
   {
     popupMenu.Attach(hMenu);
-    CMenuItem mi;
-    mi.fType = MFT_SEPARATOR;
-    mi.fMask = MIIM_TYPE;
-    if (hMenu)
-    popupMenu.InsertItem(subIndex++, true, mi);
+    if (!useMinimalExtractMenu)
+    {
+      CMenuItem mi;
+      mi.fType = MFT_SEPARATOR;
+      mi.fMask = MIIM_TYPE;
+      if (hMenu)
+        popupMenu.InsertItem(subIndex++, true, mi);
+    }
   }
 
   const UInt32 contextMenuFlags = ci.Flags;
@@ -841,8 +858,11 @@ Z7_COMWF_B CZipContextMenu::QueryContextMenu(HMENU hMenu, UINT indexMenu,
           // Extract
           CCommandMapItem cmi;
           cmi.Folder = baseFolder + specFolder;
-          AddCommand(kExtract, mainString, cmi);
-          MyInsertMenu(popupMenu, subIndex++, currentCommandID++, mainString, bitmap);
+          UString dummy;
+          AddCommand(kExtract, dummy, cmi);
+          UString label (L"\uC2A4\uB9C8\uD2B8 \uC555\uCD95\uD480\uAE30");
+          Set_UserString_in_LastCommand(label);
+          MyInsertMenu(popupMenu, subIndex++, currentCommandID++, label, bitmap);
         }
 
         if ((contextMenuFlags & NContextMenuFlags::kExtractHere) != 0)
@@ -850,20 +870,25 @@ Z7_COMWF_B CZipContextMenu::QueryContextMenu(HMENU hMenu, UINT indexMenu,
           // Extract Here
           CCommandMapItem cmi;
           cmi.Folder = baseFolder;
-          AddCommand(kExtractHere, mainString, cmi);
-          MyInsertMenu(popupMenu, subIndex++, currentCommandID++, mainString, bitmap);
+          UString dummy;
+          AddCommand(kExtractHere, dummy, cmi);
+          UString label (L"\uC5EC\uAE30\uC5D0 \uC555\uCD95\uD480\uAE30");
+          Set_UserString_in_LastCommand(label);
+          MyInsertMenu(popupMenu, subIndex++, currentCommandID++, label, bitmap);
         }
 
         if ((contextMenuFlags & NContextMenuFlags::kExtractTo) != 0)
         {
           // Extract To
           CCommandMapItem cmi;
-          UString s;
           cmi.Folder = baseFolder + specFolder;
-          AddCommand(kExtractTo, s, cmi);
-          MyFormatNew_ReducedName(s, specFolder);
-          Set_UserString_in_LastCommand(s);
-          MyInsertMenu(popupMenu, subIndex++, currentCommandID++, s, bitmap);
+          UString dummy;
+          AddCommand(kExtractTo, dummy, cmi);
+          UString label (L"\uC5EC\uAE30\uC5D0 ");
+          label += GetQuotedReducedString(specFolder);
+          label += L"\uB85C \uC555\uCD95\uD480\uAE30";
+          Set_UserString_in_LastCommand(label);
+          MyInsertMenu(popupMenu, subIndex++, currentCommandID++, label, bitmap);
         }
       }
 
